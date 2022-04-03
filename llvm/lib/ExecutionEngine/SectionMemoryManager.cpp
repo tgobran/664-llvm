@@ -16,6 +16,8 @@
 #include "llvm/Support/MathExtras.h"
 #include "llvm/Support/Process.h"
 
+#define DEBUG_TYPE "orc"
+
 namespace llvm {
 
 uint8_t *SectionMemoryManager::allocateDataSection(uintptr_t Size,
@@ -251,15 +253,45 @@ public:
   allocateMappedMemory(SectionMemoryManager::AllocationPurpose Purpose,
                        size_t NumBytes, const sys::MemoryBlock *const NearBlock,
                        unsigned Flags, std::error_code &EC) override {
+    unsigned tflag = sys::Memory::MF_READ;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_WRITE;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_WRITE;
+    LLVM_DEBUG(dbgs() << "RW: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "RX: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_WRITE|sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "RWX: " << tflag << "\n");
+   
+    unsigned baddr = reinterpret_cast<uintptr_t>(NearBlock->base());
+    LLVM_DEBUG(dbgs() << "ALLOCATING MEMORY, Address: " << baddr << " Flags: " << Flags << "\n");
     return sys::Memory::allocateMappedMemory(NumBytes, NearBlock, Flags, EC);
   }
 
   std::error_code protectMappedMemory(const sys::MemoryBlock &Block,
                                       unsigned Flags) override {
+    unsigned tflag = sys::Memory::MF_READ;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_WRITE;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "R: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_WRITE;
+    LLVM_DEBUG(dbgs() << "RW: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "RX: " << tflag << "\n");
+    tflag = sys::Memory::MF_READ|sys::Memory::MF_WRITE|sys::Memory::MF_EXEC;
+    LLVM_DEBUG(dbgs() << "RWX: " << tflag << "\n");
+    
+    LLVM_DEBUG(dbgs() << "PROTECTING MEMORY: " << Flags << "\n");
     return sys::Memory::protectMappedMemory(Block, Flags);
   }
 
   std::error_code releaseMappedMemory(sys::MemoryBlock &M) override {
+    LLVM_DEBUG(dbgs() << "RELEASING MEMORY\n");
     return sys::Memory::releaseMappedMemory(M);
   }
 };
